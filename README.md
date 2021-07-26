@@ -10,7 +10,7 @@ pip install scuec-auth
 from scuec_auth import SCUECAuth
 
 sa = SCUECAuth()
-session = sa.login('学号', '密码')
+session = sa.login('工号/学号', '密码')
 
 #
 # 然后可以使用session访问有登录限制的地址了

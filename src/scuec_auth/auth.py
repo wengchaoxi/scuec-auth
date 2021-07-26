@@ -14,35 +14,33 @@ from .utils import Session, debug, random_string, encrypt_aes
 
 simple_headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'}
 
-# def encrypt_aes_by_js(self, data, key)->str:
+# def encrypt_aes_by_js(self, data, key):
 #     url_encryptjs = 'https://id.scuec.edu.cn/authserver/default/static/common/encrypt.js'
 #     try:
 #         import os
-#         import execjs
+#         import execjs # pip install PyExecJS
 #         os.environ['EXECJS_RUNTIME'] = 'JScript'
 #         js = requests.get(url=url_encryptjs, headers=simple_headers).text
 #         ctx = execjs.compile(js)
 #         data = ctx.call('encryptAES', data, key)
 #     except:
-#         debug('encrypt by js', 'get encrypt.js error')
+#         debug('encrypt_aes_by_js', 'get encrypt.js error')
 #     return data
 
-def encrypt_passwd(passwd, salt)->str:
+def encrypt_passwd(passwd, salt):
     # return encrypt_aes_by_js(passwd, salt)
     return encrypt_aes(random_string(64)+passwd, salt)
 
 def is_username_valid(username):
     if len(username)==0:
         return False
-    pattern_tno = r'^\d{7}$'
-    pattern_sno = r'^\d{12}$'
-    t_r = re.match(pattern_tno, username)
-    s_r = re.match(pattern_sno, username)
-    if t_r or s_r:
+    t = re.match(r'^\d{7}$', username)
+    s = re.match(r'^\d{12}$', username)
+    if t or s:
         return True
     return False
 
-class SCUECAuth():
+class SCUECAuth(object):
     def __init__(self, is_verify=True, is_debug=False):
         self.uname = ''
         self.passwd = ''
@@ -50,7 +48,7 @@ class SCUECAuth():
         self.is_debug = is_debug
         self.session = None
 
-    def __verify(self, session)->bool:
+    def __verify(self, session):
         try:
             data = session.get('https://id.scuec.edu.cn/personalInfo/personCenter/index.html#/accountsecurity', headers=simple_headers)
             data.encoding = data.apparent_encoding
@@ -65,7 +63,7 @@ class SCUECAuth():
         debug('verify', 'login failed', self.is_debug)
         return False
 
-    def __build_session(self)->Session:
+    def __build_session(self):
         self.session = None
         session = Session(self.uname)
         url_login = 'https://id.scuec.edu.cn/authserver/login'
@@ -95,7 +93,7 @@ class SCUECAuth():
             try:
                 session.post(url=url_login, data=data, headers=simple_headers)
             except:
-                debug('build session', 'post user data failed', self.is_debug)
+                debug('build_session', 'post user data failed', self.is_debug)
                 return None
             if self.is_verify:
                 if self.__verify(session):
@@ -106,7 +104,7 @@ class SCUECAuth():
                 self.session = session
             return self.session
 
-    def login(self, username, password, is_verify=True)->Session:
+    def login(self, username, password, is_verify=True):
         if not is_username_valid(username):
             return None
         self.uname = username
@@ -114,7 +112,7 @@ class SCUECAuth():
         self.is_verify = is_verify
         return self.__build_session()
     
-    def is_session_valid(self, session)->bool:
+    def is_session_valid(self, session):
         return self.__verify(session)
 
     def logout(self):
