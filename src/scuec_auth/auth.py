@@ -32,19 +32,6 @@ class SCUECAuth(object):
         return '[SCUECAuth] is_verify: %s  session_cache_max_age: %s  is_debug: %s' \
             % (self.is_verify, max_age, self.is_debug)
 
-    def __verify(self, session):
-        try:
-            data = session.get('http://id.scuec.edu.cn/personalInfo/personCenter/index.html#/accountsecurity', headers=simple_headers)
-            data.encoding = data.apparent_encoding
-            data = data.text
-        except:
-            debug('SCUECAuth.__verify', 'get index.html error', self.is_debug)
-            return False
-        soup = BeautifulSoup(data, 'html.parser')
-        if soup and compat_str(soup.title.text)=="个人中心":
-            return True
-        return False
-
     def __build_session(self, username, password):
         session = Session()
         url_login = 'http://id.scuec.edu.cn/authserver/login'
@@ -76,10 +63,20 @@ class SCUECAuth(object):
         except:
             debug('SCUECAuth.__build_session', 'post login data error', self.is_debug)
             return None
-        if self.is_verify and not self.__verify(session):
-            del session
-            return None
         return session
+
+    def __verify(self, session):
+        try:
+            data = session.get('http://id.scuec.edu.cn/personalInfo/personCenter/index.html#/accountsecurity', headers=simple_headers)
+            data.encoding = data.apparent_encoding
+            data = data.text
+        except:
+            debug('SCUECAuth.__verify', 'get index.html error', self.is_debug)
+            return False
+        soup = BeautifulSoup(data, 'html.parser')
+        if soup and compat_str(soup.title.text)=="个人中心":
+            return True
+        return False
 
     def __login(self, username, password):
         self.__uname = username
@@ -87,13 +84,18 @@ class SCUECAuth(object):
         session = None
         if self.__session_cache:
             session = self.__session_cache.get_session(self.__uname)
-            if session is None or self.__verify(session):
+            if session is None:
                 session = self.__build_session(self.__uname, self.__passwd)
-                self.__session_cache.add(self.__uname, session)
+                if self.__verify(session):
+                    self.__session_cache.add(self.__uname, session)
+            self.__session = session
         else:
             session = self.__build_session(self.__uname, self.__passwd)
-        self.__session = session
-        return session
+            if self.is_verify and not self.__verify(session):
+                session.close()
+                session = None
+            self.__session = session
+        return self.__session
 
     @staticmethod
     def is_username_valid(username):
@@ -116,23 +118,22 @@ class SCUECAuth(object):
         return self.__verify(session)
 
     def logout(self, username=''):
-        session = None
-        if self.__session_cache:
-            if username == '':
-                username = self.__uname
-            session = self.__session_cache.get_session(username)
-        else:
-            session = self.__session
-        if session is None and not isinstance(session, Session):
+        session = self.__session
+        if username != '':
+            if self.__session_cache:
+                session = self.__session_cache.get_session(username)
+        if session is None:
             return False
         url_logout = 'http://id.scuec.edu.cn/authserver/logout'
         try:
             session.get(url=url_logout, headers=simple_headers)
+            session.close()
         except:
             debug('SCUECAuth.logout', 'get logout.html error', self.is_debug)
             return False
         if self.__session_cache:
             self.__session_cache.remove(username)
+        self.__session = None
         return True
 
     def open_session_cache(self, max_age=1800):
