@@ -5,7 +5,7 @@
 ## 安装
 
 ```python
-pip install scuec-auth
+pip install SCUECAuth
 ```
 
 ## 简单使用
