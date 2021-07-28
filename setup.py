@@ -2,7 +2,7 @@
 """
     scuec_auth
     ~ ~ ~ ~ ~ ~
-    The authentication module of SCUEC.
+    The authentication module of SCUEC. ( https://github.com/WengChaoxi/scuec-auth )
 
     :copyright: (c) 2021 by WengChaoxi.
     :license: MIT, see LICENSE for more details.
@@ -12,11 +12,9 @@ from setuptools import setup
 # Metadata goes in setup.cfg.
 setup(
     name = 'SCUECAuth',
-
     install_requires = [
         'requests',
         'bs4',
         'pycryptodome'
-    ],
-    extras_require = {}
+    ]
 )

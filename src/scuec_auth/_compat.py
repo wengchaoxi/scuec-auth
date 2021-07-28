@@ -6,12 +6,9 @@
     :copyright: (c) 2021 by WengChaoxi.
     :license: MIT, see LICENSE for more details.
 """
-
 import sys
 
-py3 = sys.version_info[0] == 3
-
-if not py3:
+if sys.version_info[0] == 2:
     def compat_str(x, encoding='utf-8', errors='strict'):
         if x is None or isinstance(x, str):
             return x
@@ -40,8 +37,5 @@ try:
     from Cryptodome.Cipher import AES
     from Cryptodome.Util.Padding import pad, unpad
 except ImportError:
-    try:
-        from Crypto.Cipher import AES
-        from Crypto.Util.Padding import pad, unpad
-    except ImportError:
-        sys.exit('import error')
+    from Crypto.Cipher import AES
+    from Crypto.Util.Padding import pad, unpad
