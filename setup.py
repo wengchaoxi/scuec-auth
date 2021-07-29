@@ -14,7 +14,9 @@ setup(
     name = 'SCUECAuth',
     install_requires = [
         'requests',
-        'bs4',
         'pycryptodome'
-    ]
+    ],
+    extras_require = {
+        'bs4': ['bs4']
+    }
 )
