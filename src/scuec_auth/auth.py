@@ -7,7 +7,7 @@
     :license: MIT, see LICENSE for more details.
 """
 import re
-from ._compat import compat_str
+from ._compat import compat_str, string_types
 from .utils import error, debug, random_string, encrypt_aes
 from .session import Session, SessionCache
 
@@ -125,11 +125,15 @@ class SCUECAuth(object):
         return False
 
     def login(self, username, password):
+        if not isinstance(username, string_types) or not isinstance(password, string_types):
+            error('SCUECAuth.login', 'username and password must be string type')
+            return None
         if not self.is_username_valid(username):
+            error('SCUECAuth.login', 'username is invalid')
             return None
         session = self.__login(username, password)
         if session:
-            msg = '' if self.is_verify or self.__session_cache else ', but session not verify'
+            msg = '' if self.is_verify or self.__session_cache else ', but session is not verified'
             debug('SCUECAuth.login', 'login success%s'%msg, self.is_debug)
         else:
             debug('SCUECAuth.login', 'login failed', self.is_debug)
@@ -175,7 +179,7 @@ class SCUECAuth(object):
         if self.__session_cache:
             del self.__session_cache
             self.__session_cache = None
-            debug('SCUECAuth.open_session_cache', 'session cache has closed', self.is_debug)
+            debug('SCUECAuth.close_session_cache', 'session cache has closed', self.is_debug)
             return True
-        debug('SCUECAuth.open_session_cache', "session cache not open", self.is_debug)
+        debug('SCUECAuth.close_session_cache', "session cache not open", self.is_debug)
         return False

@@ -18,6 +18,8 @@ if sys.version_info[0] == 2:
 
     def compat_bytes(x, encoding='utf-8', errors='strict'):
         return compat_str(x, encoding, errors)
+
+    string_types = (unicode, str)
 else:
     def compat_str(x, encoding='utf-8', errors='strict'):
         if x is None or isinstance(x, str):
@@ -32,6 +34,8 @@ else:
         if isinstance(x, str):
             return x.encode(encoding, errors)
         return bytes(x)
+
+    string_types = (str, )
 
 try:
     from Cryptodome.Cipher import AES
