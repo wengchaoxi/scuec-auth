@@ -7,10 +7,8 @@
     :license: MIT, see LICENSE for more details.
 """
 import re
-from bs4 import BeautifulSoup
-from bs4.element import Tag as bs4_element_tag
 from ._compat import compat_str
-from .utils import debug, random_string, encrypt_aes
+from .utils import error, debug, random_string, encrypt_aes
 from .session import Session, SessionCache
 
 simple_headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'}
@@ -22,6 +20,8 @@ class SCUECAuth(object):
 
         self.__uname = ''
         self.__passwd = ''
+        self.__regex_login = re.compile(r'<input type="hidden" id="pwdEncryptSalt" value="(.*)" /><input type="hidden" id="execution" name="execution" value="(.*)" />')
+        self.__regex_verify = re.compile(r'<title>(.*)</title>')
         self.__session = None
         self.__session_cache = None
 
@@ -38,15 +38,25 @@ class SCUECAuth(object):
         try:
             data = session.get(url=url_login, headers=simple_headers).text
         except:
-            debug('SCUECAuth.__build_session', 'get login.html error', self.is_debug)
+            error('SCUECAuth.__build_session', 'get login.html error')
             return None
-        soup = BeautifulSoup(data, 'html.parser')
-        tmp_salt = soup.find('input', {'type':'hidden', 'id':'pwdEncryptSalt'})
-        tmp_exec = soup.find('input', {'type':'hidden', 'name':'execution'})
-        if not isinstance(tmp_salt, bs4_element_tag) or not isinstance(tmp_exec, bs4_element_tag):
+
+        # from bs4 import BeautifulSoup
+        # from bs4.element import Tag
+        #
+        # soup = BeautifulSoup(data, 'html.parser')
+        # tmp_salt = soup.find('input', {'type':'hidden', 'id':'pwdEncryptSalt'})
+        # tmp_exec = soup.find('input', {'type':'hidden', 'name':'execution'})
+        # if not isinstance(tmp_salt, Tag) or not isinstance(tmp_exec, Tag):
+        #     return None
+        # salt = tmp_salt.attrs.get('value')
+        # exec_ = tmp_exec.attrs.get('value')
+        m = self.__regex_login.search(data)
+        if m is None:
             return None
-        salt = tmp_salt.attrs.get('value')
-        exec_ = tmp_exec.attrs.get('value')
+        salt = m.group(1)
+        exec_ = m.group(2)
+
         if salt is None or exec_ is None:
             return None
         data = {
@@ -61,7 +71,7 @@ class SCUECAuth(object):
         try:
             session.post(url=url_login, data=data, headers=simple_headers)
         except:
-            debug('SCUECAuth.__build_session', 'post login data error', self.is_debug)
+            error('SCUECAuth.__build_session', 'post login data error')
             return None
         return session
 
@@ -71,11 +81,18 @@ class SCUECAuth(object):
             data.encoding = data.apparent_encoding
             data = data.text
         except:
-            debug('SCUECAuth.__verify', 'get index.html error', self.is_debug)
+            error('SCUECAuth.__verify', 'get index.html error')
             return False
-        soup = BeautifulSoup(data, 'html.parser')
-        if soup and compat_str(soup.title.text)=="个人中心":
+
+        # from bs4 import BeautifulSoup
+        #
+        # soup = BeautifulSoup(data, 'html.parser')
+        # if soup and compat_str(soup.title.text)=="个人中心":
+        #     return True
+        m = self.__regex_verify.search(data)
+        if m and compat_str(m.group(1)) == "个人中心":
             return True
+
         return False
 
     def __login(self, username, password):
@@ -91,7 +108,7 @@ class SCUECAuth(object):
             self.__session = session
         else:
             session = self.__build_session(self.__uname, self.__passwd)
-            if self.is_verify and not self.__verify(session):
+            if session and self.is_verify and not self.__verify(session):
                 session.close()
                 session = None
             self.__session = session
@@ -110,7 +127,13 @@ class SCUECAuth(object):
     def login(self, username, password):
         if not self.is_username_valid(username):
             return None
-        return self.__login(username, password)
+        session = self.__login(username, password)
+        if session:
+            msg = '' if self.is_verify or self.__session_cache else ', but session not verify'
+            debug('SCUECAuth.login', 'login success%s'%msg, self.is_debug)
+        else:
+            debug('SCUECAuth.login', 'login failed', self.is_debug)
+        return session
     
     def verify_session(self, session):
         if session is None or not isinstance(session, Session):
@@ -129,26 +152,30 @@ class SCUECAuth(object):
             session.get(url=url_logout, headers=simple_headers)
             session.close()
         except:
-            debug('SCUECAuth.logout', 'get logout.html error', self.is_debug)
+            error('SCUECAuth.logout', 'get logout.html error')
             return False
         if self.__session_cache:
             self.__session_cache.remove(username)
         self.__session = None
+        debug('SCUECAuth.logout', 'logout success', self.is_debug)
         return True
 
     def open_session_cache(self, max_age=1800):
         if max_age <= 0:
-            debug('SCUECAuth.open_session_cache', 'max_age must >0', self.is_debug)
+            error('SCUECAuth.open_session_cache', 'max_age must >0')
             return False
         if self.__session_cache:
             self.__session_cache.max_age = max_age
         else:
             self.__session_cache = SessionCache(max_age)
+            debug('SCUECAuth.open_session_cache', 'session cache has opened', self.is_debug)
         return True
     
     def close_session_cache(self):
         if self.__session_cache:
             del self.__session_cache
             self.__session_cache = None
+            debug('SCUECAuth.open_session_cache', 'session cache has closed', self.is_debug)
             return True
+        debug('SCUECAuth.open_session_cache', "session cache not open", self.is_debug)
         return False
