@@ -13,9 +13,16 @@ from base64 import b64encode, b64decode
 from functools import wraps
 from ._compat import compat_str, compat_bytes, AES, pad, unpad, clock_cpu, clock
 
+def error(tag='', msg=None):
+    if tag!='':
+        tag = '(%s)'%tag
+    print('[error] %s  %s'%(msg, tag))
+
 def debug(tag='', msg=None, is_debug=True):
     if is_debug:
-        print('[debug] tag: %s  msg: %s'%(tag, msg))
+        if tag!='':
+            tag = '(%s)'%tag
+        print('[debug] %s  %s'%(msg, tag))
 
 def random_string(size=16):
     aes_chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'
