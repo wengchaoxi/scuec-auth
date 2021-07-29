@@ -5,7 +5,7 @@
 ## 安装
 
 ```python
-pip install SCUECAuth
+pip install SCUECAuth -i https://pypi.org/simple
 ```
 
 ## 简单使用
