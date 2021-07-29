@@ -39,3 +39,8 @@ try:
 except ImportError:
     from Crypto.Cipher import AES
     from Crypto.Util.Padding import pad, unpad
+
+try:
+    from time import process_time as clock_cpu, perf_counter as clock
+except ImportError:
+    from time import clock as clock_cpu, time as clock
