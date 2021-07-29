@@ -10,7 +10,8 @@ from __future__ import print_function
 
 from random import randint
 from base64 import b64encode, b64decode
-from ._compat import compat_str, compat_bytes, AES, pad, unpad
+from functools import wraps
+from ._compat import compat_str, compat_bytes, AES, pad, unpad, clock_cpu, clock
 
 def debug(tag='', msg=None, is_debug=True):
     if is_debug:
@@ -42,3 +43,16 @@ def decrypt_aes(data, key):
     cipher = AES.new(key, AES.MODE_CBC, iv)
     data = unpad(cipher.decrypt(data), AES.block_size, style='pkcs7')
     return compat_str(data)
+
+def time_counter(just_cpu=False):
+    def inner(func):
+        c = clock_cpu if just_cpu else clock
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            begin = c()
+            r = func(*args, **kwargs)
+            end = c()
+            print('[time_counter.{}] {:.3f}s'.format(func.__name__, end-begin))
+            return r
+        return wrapper
+    return inner
