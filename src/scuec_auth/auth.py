@@ -103,8 +103,10 @@ class SCUECAuth(object):
             session = self.__session_cache.get_session(self.__uname)
             if session is None:
                 session = self.__build_session(self.__uname, self.__passwd)
-                if self.__verify(session):
+                if session and self.__verify(session):
                     self.__session_cache.add(self.__uname, session)
+                else:
+                    session = None
             self.__session = session
         else:
             session = self.__build_session(self.__uname, self.__passwd)
