@@ -10,8 +10,10 @@ from time import time as current_time
 from requests import Session as SessionBase
 
 class Session(SessionBase):
-    def __init__(self):
+    def __init__(self, username, password):
         super(Session, self).__init__()
+        self.uname = username
+        self.passwd = password
         self.last_time = current_time()
 
     def get(self, url, **kwargs):
@@ -76,9 +78,9 @@ class SessionCache(object):
             return True
         return False
 
-    def get_session(self, username):
+    def get_session(self, username, password):
         session = self.__get(username)
-        if session:
+        if session and session.passwd==password:
             if session.last_time + self.max_age > current_time():
                 return session
         return None
