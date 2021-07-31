@@ -8,6 +8,7 @@
 """
 from time import time as current_time
 from requests import Session as SessionBase
+from ._compat import iteritems
 
 class Session(SessionBase):
     def __init__(self, username, password):
@@ -15,6 +16,9 @@ class Session(SessionBase):
         self.uname = username
         self.passwd = password
         self.last_time = current_time()
+
+    def __del__(self):
+        self.close()
 
     def get(self, url, **kwargs):
         self.last_time = current_time()
@@ -39,11 +43,11 @@ class SessionCache(object):
             self.__cache_hash_table.append(dict())
 
     def __str__(self):
-        cache_table = []
-        for t in self.__cache_hash_table:
-            if t:
-                cache_table.append(t)
-        return '[SessionCache] cache_count: %d  cache_max_age: %d  cache_table: %s' %(self.__cache_count, self.max_age, cache_table)
+        cache_list = []
+        for d in self.__cache_hash_table:
+            for it in iteritems(d):
+                cache_list.append(it)
+        return '[SessionCache] cache_count: %d  cache_max_age: %d  cache_list: %s' % (self.__cache_count, self.max_age, cache_list)
 
     @staticmethod
     def __hash(data):
@@ -78,9 +82,9 @@ class SessionCache(object):
             return True
         return False
 
-    def get_session(self, username, password):
+    def get_session(self, username):
         session = self.__get(username)
-        if session and session.passwd==password:
+        if session:
             if session.last_time + self.max_age > current_time():
                 return session
         return None

@@ -5,7 +5,8 @@ from scuec_auth.session import Session, SessionCache
 class TestSession(unittest.TestCase):
     def test_session(self):
         sc = SessionCache(5)
-        sc.add('2021', Session())
+        sc.add('2021', Session('2021', '2021'))
+        sc.add('0731', Session('0731', '0731'))
         print(sc)
         s = sc.get_session('2021')
         print(s)
