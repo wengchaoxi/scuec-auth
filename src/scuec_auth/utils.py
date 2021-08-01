@@ -52,7 +52,7 @@ def decrypt_aes(data, key):
     return compat_str(data)
 
 def time_counter(just_cpu=False):
-    def inner(func):
+    def decorate(func):
         c = clock_cpu if just_cpu else clock
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -62,4 +62,4 @@ def time_counter(just_cpu=False):
             print('[time_counter.{}] {:.3f}s'.format(func.__name__, end-begin))
             return r
         return wrapper
-    return inner
+    return decorate

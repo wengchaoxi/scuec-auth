@@ -48,3 +48,35 @@ sa.logout(username='') # 默认清理当前用户登录所产生session，可通
 # 关闭session缓存，所有用户登录缓存都将被清除
 sa.close_session_cache()
 ```
+
+## 简单应用
+
+> 此模块基于Python，你可以在任何以Python为开发语言的程序或框架中使用，这里以flask为例
+
+```python
+# -*- coding: utf-8 -*-
+from flask import Flask, request, render_template
+from scuec_auth import SCUECAuth
+
+app  = Flask(__name__)
+sa = SCUECAuth()
+sa.open_session_cache()
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == "GET":
+        return render_template('index.html')
+    uname = str(request.form.get('username')).strip()
+    passwd = str(request.form.get('password')).strip()
+    if SCUECAuth.is_username_valid(uname) and len(passwd)!=0:
+        if sa.login(uname, passwd):
+            return '1'
+    return '0'
+
+if __name__ == '__main__':
+    app.run()
+```
+
+代码地址：[/examples/flask](https://github.com/WengChaoxi/scuec-auth/tree/main/examples/flask)
+
+测试地址：[https://scuec-auth.wengcx.top](https://scuec-auth.wengcx.top)

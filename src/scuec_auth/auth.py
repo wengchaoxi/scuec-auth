@@ -18,12 +18,16 @@ class SCUECAuth(object):
         self.is_verify = is_verify
         self.is_debug = is_debug
 
-        self.__uname = ''
-        self.__passwd = ''
         self.__regex_login = re.compile(r'<input type="hidden" id="pwdEncryptSalt" value="(.*)" /><input type="hidden" id="execution" name="execution" value="(.*)" />')
         self.__regex_verify = re.compile(r'<title>(.*)</title>')
         self.__session = None
         self.__session_cache = None
+
+    def __del__(self):
+        if self.__session:
+            del self.__session
+        if self.__session_cache:
+            del self.__session_cache
 
     def __str__(self):
         max_age = 0
@@ -33,7 +37,7 @@ class SCUECAuth(object):
             % (self.is_verify, max_age, self.is_debug)
 
     def __build_session(self, username, password):
-        session = Session()
+        session = Session(username, password)
         url_login = 'http://id.scuec.edu.cn/authserver/login'
         try:
             data = session.get(url=url_login, headers=simple_headers).text
@@ -96,22 +100,22 @@ class SCUECAuth(object):
         return False
 
     def __login(self, username, password):
-        self.__uname = username
-        self.__passwd = password
         session = None
         if self.__session_cache:
-            session = self.__session_cache.get_session(self.__uname)
+            session = self.__session_cache.get_session(username)
+            if session and session.passwd!=password:
+                session = None
             if session is None:
-                session = self.__build_session(self.__uname, self.__passwd)
-                if session and self.__verify(session):
-                    self.__session_cache.add(self.__uname, session)
-                else:
-                    session = None
+                session = self.__build_session(username, password)
+                if session:
+                    if self.__verify(session):
+                        self.__session_cache.add(username, session)
+                    else:
+                        session = None
             self.__session = session
         else:
-            session = self.__build_session(self.__uname, self.__passwd)
+            session = self.__build_session(username, password)
             if session and self.is_verify and not self.__verify(session):
-                session.close()
                 session = None
             self.__session = session
         return self.__session
@@ -147,22 +151,27 @@ class SCUECAuth(object):
         return self.__verify(session)
 
     def logout(self, username=''):
+        if not isinstance(username, string_types):
+            return False
         session = self.__session
-        if username != '':
-            if self.__session_cache:
-                session = self.__session_cache.get_session(username)
+        if username:
+            if not self.is_username_valid(username):
+                error('SCUECAuth.logout', 'username is invalid')
+                return False
+            session = self.__session_cache.get_session(username) if self.__session_cache else None
         if session is None:
             return False
         url_logout = 'http://id.scuec.edu.cn/authserver/logout'
         try:
             session.get(url=url_logout, headers=simple_headers)
-            session.close()
         except:
             error('SCUECAuth.logout', 'get logout.html error')
             return False
         if self.__session_cache:
             self.__session_cache.remove(username)
-        self.__session = None
+        else:
+            del self.__session
+            self.__session = None
         debug('SCUECAuth.logout', 'logout success', self.is_debug)
         return True
 

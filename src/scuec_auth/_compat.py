@@ -9,6 +9,15 @@
 import sys
 
 if sys.version_info[0] == 2:
+    def iteritems(d):
+        return d.iteritems()
+
+    def iterkeys(d):
+        return d.iterkeys()
+
+    def itervalues(d):
+        return d.itervalues()
+
     def compat_str(x, encoding='utf-8', errors='strict'):
         if x is None or isinstance(x, str):
             return x
@@ -21,6 +30,15 @@ if sys.version_info[0] == 2:
 
     string_types = (unicode, str)
 else:
+    def iteritems(d):
+        return iter(d.items())
+
+    def iterkeys(d):
+        return iter(d.keys())
+    
+    def itervalues(d):
+        return iter(d.values())
+
     def compat_str(x, encoding='utf-8', errors='strict'):
         if x is None or isinstance(x, str):
             return x

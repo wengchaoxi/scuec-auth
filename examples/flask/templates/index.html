@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>测试 | SCUECAuth</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <script>
+        function login() {
+            $.ajax({
+                url: "/",
+                data: {
+                    username: $("#username").val(),
+                    password: $("#password").val()
+                },
+                type: "POST",
+                dataType: "json",
+                success: function(data) {
+                    if(data == "1"){
+                        alert("用户信息验证通过！");
+                    }else if(data == "0"){
+                        alert("验证失败！");
+                    }
+                },
+                error: function() {
+                    alert('出错了！');
+                }
+            });
+        }
+    </script>
+    <style>
+        .main {
+            width: 390px;
+            margin: 0 auto;
+            overflow: hidden;
+            padding: 39px;
+            text-align: center;
+        }
+        .title {
+            margin-top: 9%;
+            margin-bottom: 5%;
+        }
+        .from-container {
+            width: 95%;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body onselectstart="return false;">
+    <div class="main">
+        <h3 class="title">
+            <a target="_blank" href="https://github.com/WengChaoxi/scuec-auth">SCUECAuth</a>
+            测试
+        </h3>
+        <hr>
+        <div class="from-container">
+            <div class="form-group">
+                <input type="text" class="form-control" placeholder="工号/学号" id="username">
+            </div>
+            <div class="form-group">
+                <input type="password" class="form-control" placeholder="密码" id="password">
+            </div>
+            <div class="form-group">
+                <br>
+                <button class="btn btn-primary btn-block" onclick="login()">登录</button>
+            </div>
+        </div>
+        <div class="navbar-fixed-bottom" style="margin-bottom:9px">
+            <a target="_blank" href="https://blog.wengcx.top" style="color:rgb(0, 0, 0)">
+                &copy;2021&nbsp;公羽向阳
+            </a>
+            <img src="https://pan.wengcx.top/file/image/count.png" height="12px" width="12px"><span id="busuanzi_value_site_uv" style="font-size:15px;color:#C0C0C0"></span>
+            <br>
+        </div>
+    </div>
+</body>
+</html>
