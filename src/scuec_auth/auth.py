@@ -104,7 +104,7 @@ class SCUECAuth(object):
         if self.__session_cache:
             session = self.__session_cache.get_session(username)
             if session and session.passwd!=password:
-                session = None
+                return None
             if session is None:
                 session = self.__build_session(username, password)
                 if session:
