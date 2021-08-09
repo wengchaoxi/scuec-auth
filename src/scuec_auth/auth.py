@@ -18,9 +18,9 @@ class SCUECAuth(object):
         self.is_verify = is_verify
         self.is_debug = is_debug
 
-        self.__url_login = 'http://id.scuec.edu.cn/authserver/login'
-        self.__url_verify = 'http://id.scuec.edu.cn/personalInfo/personCenter/index.html#/accountsecurity'
-        self.__url_logout = 'http://id.scuec.edu.cn/authserver/logout'
+        self.__url_login = 'https://id.scuec.edu.cn/authserver/login'
+        self.__url_verify = 'https://id.scuec.edu.cn/personalInfo/personCenter/index.html#/accountsecurity'
+        self.__url_logout = 'https://id.scuec.edu.cn/authserver/logout'
         self.__regex_login = re.compile(r'<input type="hidden" id="pwdEncryptSalt" value="(.*)" /><input type="hidden" id="execution" name="execution" value="(.*)" />')
         self.__regex_verify = re.compile(r'<title>(.*)</title>')
         self.__regex_verify_keyword = '个人中心'
@@ -73,6 +73,7 @@ class SCUECAuth(object):
             'captcha': '',
             '_eventId': 'submit',
             'cllt': 'userNameLogin',
+            'dllt': 'generalLogin',
             'lt': '',
             'execution': exec_
         }
