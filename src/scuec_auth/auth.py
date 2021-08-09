@@ -18,8 +18,13 @@ class SCUECAuth(object):
         self.is_verify = is_verify
         self.is_debug = is_debug
 
+        self.__url_login = 'http://id.scuec.edu.cn/authserver/login'
+        self.__url_verify = 'http://id.scuec.edu.cn/personalInfo/personCenter/index.html#/accountsecurity'
+        self.__url_logout = 'http://id.scuec.edu.cn/authserver/logout'
         self.__regex_login = re.compile(r'<input type="hidden" id="pwdEncryptSalt" value="(.*)" /><input type="hidden" id="execution" name="execution" value="(.*)" />')
         self.__regex_verify = re.compile(r'<title>(.*)</title>')
+        self.__regex_verify_keyword = '个人中心'
+        
         self.__session = None
         self.__session_cache = None
 
@@ -38,9 +43,8 @@ class SCUECAuth(object):
 
     def __build_session(self, username, password):
         session = Session(username, password)
-        url_login = 'http://id.scuec.edu.cn/authserver/login'
         try:
-            data = session.get(url=url_login, headers=simple_headers).text
+            data = session.get(self.__url_login, headers=simple_headers).text
         except:
             error('SCUECAuth.__build_session', 'get login.html error')
             return None
@@ -73,7 +77,7 @@ class SCUECAuth(object):
             'execution': exec_
         }
         try:
-            session.post(url=url_login, data=data, headers=simple_headers)
+            session.post(self.__url_login, data=data, headers=simple_headers)
         except:
             error('SCUECAuth.__build_session', 'post login data error')
             return None
@@ -81,7 +85,7 @@ class SCUECAuth(object):
 
     def __verify(self, session):
         try:
-            data = session.get('http://id.scuec.edu.cn/personalInfo/personCenter/index.html#/accountsecurity', headers=simple_headers)
+            data = session.get(self.__url_verify, headers=simple_headers)
             data.encoding = data.apparent_encoding
             data = data.text
         except:
@@ -94,7 +98,7 @@ class SCUECAuth(object):
         # if soup and compat_str(soup.title.text)=="个人中心":
         #     return True
         m = self.__regex_verify.search(data)
-        if m and compat_str(m.group(1)) == "个人中心":
+        if m and compat_str(m.group(1)) == self.__regex_verify_keyword:
             return True
 
         return False
@@ -161,9 +165,8 @@ class SCUECAuth(object):
             session = self.__session_cache.get_session(username) if self.__session_cache else None
         if session is None:
             return False
-        url_logout = 'http://id.scuec.edu.cn/authserver/logout'
         try:
-            session.get(url=url_logout, headers=simple_headers)
+            session.get(self.__url_logout, headers=simple_headers)
         except:
             error('SCUECAuth.logout', 'get logout.html error')
             return False
