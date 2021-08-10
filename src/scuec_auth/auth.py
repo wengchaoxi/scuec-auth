@@ -130,8 +130,9 @@ class SCUECAuth(object):
         if len(username)==0:
             return False
         t = re.match(r'^\d{7}$', username)
-        s = re.match(r'^\d{12}$', username)
-        if t or s:
+        s0 = re.match(r'^\d{10}$', username)
+        s1 = re.match(r'^\d{12}$', username)
+        if t or s0 or s1:
             return True
         return False
 
@@ -139,9 +140,9 @@ class SCUECAuth(object):
         if not isinstance(username, string_types) or not isinstance(password, string_types):
             error('SCUECAuth.login', 'username and password must be string type')
             return None
-        if not self.is_username_valid(username):
-            error('SCUECAuth.login', 'username is invalid')
-            return None
+        # if not self.is_username_valid(username):
+        #     error('SCUECAuth.login', 'username is invalid')
+        #     return None
         session = self.__login(username, password)
         if session:
             msg = '' if self.is_verify or self.__session_cache else ', but session is not verified'
@@ -160,9 +161,9 @@ class SCUECAuth(object):
             return False
         session = self.__session
         if username:
-            if not self.is_username_valid(username):
-                error('SCUECAuth.logout', 'username is invalid')
-                return False
+            # if not self.is_username_valid(username):
+            #     error('SCUECAuth.logout', 'username is invalid')
+            #     return False
             session = self.__session_cache.get_session(username) if self.__session_cache else None
         if session is None:
             return False

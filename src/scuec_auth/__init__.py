@@ -12,5 +12,5 @@ from .utils import error, debug, random_string, random_bytes, encrypt_aes, decry
 from .session import Session, SessionCache
 from .auth import simple_headers, SCUECAuth
 
-__version__ = '1.1.3'
+__version__ = '1.1.4'
 __all__ = ['compat_str', 'compat_bytes', 'error', 'debug', 'random_string', 'random_bytes', 'encrypt_aes', 'decrypt_aes', 'time_counter', 'Session', 'SessionCache', 'simple_headers', 'SCUECAuth']
